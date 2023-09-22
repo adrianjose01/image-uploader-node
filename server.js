@@ -3,12 +3,14 @@ const app = express();
 const path = require("path");
 const multer = require("multer");
 const cors = require("cors");
+require("dotenv").config();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use(cors());
 
 let imageUrlPath;
+const host = process.env.HOST;
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -30,7 +32,7 @@ app.get("/*", (req, res, next) => {
 
 app.post("/upload-image", upload.single("file"), (req, res, next) => {
   res.json({
-    imagePath: req.protocol + "://" + "localhost:4000" + "/" + req.file.path,
+    imagePath: req.protocol + "://" + host + "/" + req.file.path,
   });
 });
 
