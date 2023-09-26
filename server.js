@@ -9,30 +9,38 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use(cors());
 
-let imageUrlPath;
+app.use("/images", express.static(path.join(__dirname, "images")));
+
 const host = process.env.HOST;
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, "./Images");
+    cb(null, "images");
   },
 
   filename: (req, file, cb) => {
-    console.log(file);
-    imageUrlPath = `${Date.now().toString().slice(0, 6)}_${file.originalname}`;
-    cb(null, `${Date.now().toString().slice(0, 6)}_${file.originalname}`);
+    cb(null, Math.random() * 10 + file.originalname);
   },
 });
 
-const upload = multer({ storage });
+const fileFilter = (req, file, cb) => {
+  if (
+    file.mimetype === "image/png" ||
+    file.mimetype === "image/jpg" ||
+    file.mimetype === "image/jpeg"
+  ) {
+    cb(null, true);
+  } else {
+    cb(null, false);
+  }
+};
 
-app.get("/*", (req, res, next) => {
-  res.sendFile(path.join(__dirname, req.originalUrl));
-});
+app.use(multer({ storage: storage, fileFilter: fileFilter }).single("image"));
 
-app.post("/upload-image", upload.single("file"), (req, res, next) => {
+app.post("/upload-image", (req, res, next) => {
+  const image = req.file.path;
   res.json({
-    imagePath: req.protocol + "://" + host + "/" + req.file.path,
+    imagePath: req.protocol + "://" + host + image,
   });
 });
 
